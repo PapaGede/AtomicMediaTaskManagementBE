@@ -81,7 +81,7 @@ class TaskControllerTest {
     }
 
     @Test
-    void getTaskById_shouldReturn404_whenNotFound() throws Exception {
+    void testSetTaskByIdShouldReturn404WhenNotFound() throws Exception {
         UUID missingId = UUID.randomUUID();
         when(taskService.getTaskById(missingId)).thenThrow(new TaskNotFoundException(missingId));
 

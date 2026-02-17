@@ -45,7 +45,28 @@ public class TaskServiceImpl implements TaskService {
     @Override
     @Transactional
     public TaskResponse getTaskById(UUID id) {
-        return TaskResponse.from(taskRepository.findById(id)
-                .orElseThrow(() -> new TaskNotFoundException(id)));
+        Task task = findTaskOrThrow(id);
+        return TaskResponse.from(task);
+    }
+
+    @Override
+    public TaskResponse updateTask(UUID id, TaskRequest request) {
+        Task task = findTaskOrThrow(id);
+
+        task.setTitle(request.title());
+        task.setDescription(request.description());
+        if (request.completed() != null) {
+            task.setCompleted(request.completed());
+        }
+        task.setDueDate(request.dueDate());
+        task.setAssignedTo(request.assignedTo());
+
+        Task updatedTask = taskRepository.save(task);
+        return TaskResponse.from(updatedTask);
+    }
+
+    private Task findTaskOrThrow(UUID id) {
+        return taskRepository.findById(id)
+                .orElseThrow(() -> new TaskNotFoundException(id));
     }
 }

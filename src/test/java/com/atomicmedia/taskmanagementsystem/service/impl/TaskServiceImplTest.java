@@ -67,7 +67,7 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void getTaskById_shouldReturnTask_whenExists() {
+    void testGetTaskByIdShouldReturnTaskWhenExists() {
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(sampleTask));
 
         TaskResponse response = taskService.getTaskById(taskId);
@@ -77,7 +77,7 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void shouldReturnAllTasks() {
+    void testShouldReturnAllTasks() {
         Task task1 = new Task();
         task1.setId(UUID.randomUUID());
         task1.setTitle("Task 1");
@@ -93,7 +93,7 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void shouldReturnEmptyListWhenNoTasksExist() {
+    void testShouldReturnEmptyListWhenNoTasksExist() {
         when(taskRepository.findAll()).thenReturn(Collections.emptyList());
 
         List<TaskResponse> result = taskService.getAllTasks();
@@ -102,10 +102,33 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenTaskNotFound() {
+    void testShouldThrowExceptionWhenTaskNotFound() {
         UUID taskId = UUID.randomUUID();
         when(taskRepository.findById(taskId)).thenReturn(Optional.empty());
 
         assertThrows(TaskNotFoundException.class, () -> taskService.getTaskById(taskId));
+    }
+
+    @Test
+    void testShouldUpdateTaskSuccessfully() {
+        UUID id = UUID.randomUUID();
+
+        Task existingTask = new Task();
+        existingTask.setId(id);
+
+        when(taskRepository.findById(id)).thenReturn(Optional.of(existingTask));
+
+        when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TaskRequest request = new TaskRequest(
+                "Updated Title",
+                "Updated Description",
+                true,
+                LocalDateTime.now().plusDays(1),
+                "John"
+        );
+
+        TaskResponse response = taskService.updateTask(id, request);
+        assertEquals("Updated Title", response.title());
     }
 }

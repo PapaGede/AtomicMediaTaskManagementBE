@@ -10,4 +10,5 @@ public interface TaskService {
     TaskResponse createTask(TaskRequest request);
     List<TaskResponse> getAllTasks();
     TaskResponse getTaskById(UUID id);
+    TaskResponse updateTask(UUID id, TaskRequest request);
 }
