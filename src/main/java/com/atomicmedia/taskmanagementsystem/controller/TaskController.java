@@ -3,6 +3,7 @@ package com.atomicmedia.taskmanagementsystem.controller;
 import com.atomicmedia.taskmanagementsystem.dto.TaskRequest;
 import com.atomicmedia.taskmanagementsystem.dto.TaskResponse;
 import com.atomicmedia.taskmanagementsystem.service.TaskService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ public class TaskController {
     private final TaskService taskService;
 
     @PostMapping
+    @Operation(summary = "Create a new task")
     public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody TaskRequest request) {
         TaskResponse created = taskService.createTask(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
