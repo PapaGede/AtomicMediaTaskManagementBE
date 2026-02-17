@@ -8,10 +8,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -24,5 +24,17 @@ public class TaskController {
     public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody TaskRequest request) {
         TaskResponse created = taskService.createTask(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @GetMapping
+    @Operation(summary = "Get all tasks")
+    public ResponseEntity<List<TaskResponse>> getAllTasks() {
+        return ResponseEntity.ok(taskService.getAllTasks());
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Get task by ID")
+    public ResponseEntity<TaskResponse> getTaskById(@PathVariable UUID id) {
+        return ResponseEntity.ok(taskService.getTaskById(id));
     }
 }

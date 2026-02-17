@@ -2,6 +2,7 @@ package com.atomicmedia.taskmanagementsystem.service.impl;
 
 import com.atomicmedia.taskmanagementsystem.dto.TaskRequest;
 import com.atomicmedia.taskmanagementsystem.dto.TaskResponse;
+import com.atomicmedia.taskmanagementsystem.exception.TaskNotFoundException;
 import com.atomicmedia.taskmanagementsystem.model.Task;
 import com.atomicmedia.taskmanagementsystem.repository.TaskRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,9 +13,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -59,5 +64,48 @@ class TaskServiceImplTest {
         assertThat(response.completed()).isFalse();
         assertThat(response.assignedTo()).isEqualTo("developer");
         verify(taskRepository).save(any(Task.class));
+    }
+
+    @Test
+    void getTaskById_shouldReturnTask_whenExists() {
+        when(taskRepository.findById(taskId)).thenReturn(Optional.of(sampleTask));
+
+        TaskResponse response = taskService.getTaskById(taskId);
+
+        assertThat(response.id()).isEqualTo(taskId);
+        assertThat(response.title()).isEqualTo("Test Task");
+    }
+
+    @Test
+    void shouldReturnAllTasks() {
+        Task task1 = new Task();
+        task1.setId(UUID.randomUUID());
+        task1.setTitle("Task 1");
+
+        Task task2 = new Task();
+        task2.setId(UUID.randomUUID());
+        task2.setTitle("Task 2");
+
+        when(taskRepository.findAll()).thenReturn(List.of(task1, task2));
+
+        List<TaskResponse> result = taskService.getAllTasks();
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenNoTasksExist() {
+        when(taskRepository.findAll()).thenReturn(Collections.emptyList());
+
+        List<TaskResponse> result = taskService.getAllTasks();
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenTaskNotFound() {
+        UUID taskId = UUID.randomUUID();
+        when(taskRepository.findById(taskId)).thenReturn(Optional.empty());
+
+        assertThrows(TaskNotFoundException.class, () -> taskService.getTaskById(taskId));
     }
 }
