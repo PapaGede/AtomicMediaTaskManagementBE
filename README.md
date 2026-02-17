@@ -105,6 +105,33 @@ The application follows a clean **Controller -> Service -> Repository** layered 
 - DDL auto-update mode (`spring.jpa.hibernate.ddl-auto=update`) is used for convenience; a production deployment would use migration tools like Flyway or Liquibase.
 - Rate limiting is per-IP and in-memory — in a multi-instance deployment, a distributed rate limiter (e.g., Redis-backed) would be needed.
 
+## Production Considerations
+
+### Security
+
+The current application has no authentication or authorization. In a production environment, **Spring Security** would be integrated to address this:
+
+- **Authentication** — Implement JWT-based authentication (or OAuth 2.0 / OpenID Connect) so users must log in before accessing the API. This introduces a `User` entity tied to tasks, replacing the current free-text `assignedTo` field with a proper user reference.
+- **Role-based authorization** — Define roles such as `ADMIN`, `MANAGER`, and `USER` to control access:
+   - `ADMIN` — Full access: create, read, update, delete any task; manage users.
+   - `MANAGER` — Create and assign tasks to any user; view all tasks.
+   - `USER` — View and update only their own assigned tasks.
+- **Endpoint-level security** — Use `@PreAuthorize` or a `SecurityFilterChain` to restrict endpoints (e.g., only admins can `DELETE`, only assigned users or managers can `PUT`).
+- **Additional hardening** — Enable CSRF protection for browser-based clients, enforce HTTPS, hash and salt any stored credentials, and tighten CORS to specific production domains.
+
+### Scalability
+
+- **Database** — Replace H2 with a production-grade database like **PostgreSQL** or **MySQL**. Use connection pooling (HikariCP, included by default in Spring Boot) and add indexes on frequently filtered columns (`completed`, `assignedTo`, `dueDate`).
+- **Caching** — Introduce **Redis** or an in-memory cache (Spring Cache with Caffeine) for frequently read data like task lists, reducing database load.
+- **Async processing** — For heavier operations (e.g., notifications, bulk updates), introduce a **message queue** (RabbitMQ, Kafka) to offload work from the request/response cycle.
+
+### Deployment Strategy
+
+- **Containerization** — Package the application as a **Docker** image using a multi-stage build (build with Maven, run with a slim JRE). This ensures consistent environments across development, staging, and production.
+- **CI/CD pipeline** — Set up a pipeline (GitHub Actions, GitLab CI, or Jenkins) that runs tests, builds the Docker image, and deploys to staging/production on merge to `main`.
+- **Environment configuration** — Externalize configuration using environment variables or a config service (Spring Cloud Config), keeping secrets out of the codebase.
+
+
 ## AI Disclosure
 
 Some of the **unit/integration tests**, the **data seeder**, and this **README** were generated using AI to save development time.
