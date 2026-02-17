@@ -1,15 +1,21 @@
 package com.atomicmedia.taskmanagementsystem.controller;
 
+import com.atomicmedia.taskmanagementsystem.dto.TaskFilterRequest;
 import com.atomicmedia.taskmanagementsystem.dto.TaskRequest;
 import com.atomicmedia.taskmanagementsystem.dto.TaskResponse;
 import com.atomicmedia.taskmanagementsystem.service.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,9 +33,34 @@ public class TaskController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all tasks")
-    public ResponseEntity<List<TaskResponse>> getAllTasks() {
-        return ResponseEntity.ok(taskService.getAllTasks());
+    @Operation(summary = "Get all tasks", description = "Retrieve tasks with optional filtering, sorting, and pagination")
+    public ResponseEntity<Page<TaskResponse>> getAllTasks(
+            @RequestParam(required = false) Boolean completed,
+            @RequestParam(required = false) LocalDateTime dueDateFrom,
+            @RequestParam(required = false) LocalDateTime dueDateTo,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String assignedTo,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+
+        Sort sort = sortDir.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        int pageIndex = Math.max(page, 1) - 1;
+        Pageable pageable = PageRequest.of(pageIndex, size, sort);
+
+        TaskFilterRequest filter = TaskFilterRequest.builder()
+                .completed(completed)
+                .dueDateFrom(dueDateFrom)
+                .dueDateTo(dueDateTo)
+                .search(search)
+                .assignedTo(assignedTo)
+                .build();
+
+        Page<TaskResponse> tasks = taskService.getAllTasks(filter, pageable);
+        return ResponseEntity.ok(tasks);
     }
 
     @GetMapping("/{id}")

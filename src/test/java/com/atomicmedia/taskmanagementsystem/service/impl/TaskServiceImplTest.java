@@ -1,5 +1,6 @@
 package com.atomicmedia.taskmanagementsystem.service.impl;
 
+import com.atomicmedia.taskmanagementsystem.dto.TaskFilterRequest;
 import com.atomicmedia.taskmanagementsystem.dto.TaskRequest;
 import com.atomicmedia.taskmanagementsystem.dto.TaskResponse;
 import com.atomicmedia.taskmanagementsystem.exception.TaskNotFoundException;
@@ -11,6 +12,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -86,17 +92,33 @@ class TaskServiceImplTest {
         task2.setId(UUID.randomUUID());
         task2.setTitle("Task 2");
 
-        when(taskRepository.findAll()).thenReturn(List.of(task1, task2));
+        Page<Task> page = new PageImpl<>(List.of(task1, task2));
 
-        List<TaskResponse> result = taskService.getAllTasks();
-        assertEquals(2, result.size());
+        when(taskRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(page);
+
+        TaskFilterRequest filter = new TaskFilterRequest(null, null, null, null, null);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<TaskResponse> result = taskService.getAllTasks(filter, pageable);
+
+        assertEquals(2, result.getContent().size());
     }
 
     @Test
     void testShouldReturnEmptyListWhenNoTasksExist() {
-        when(taskRepository.findAll()).thenReturn(Collections.emptyList());
+        Page<Task> emptyPage = new PageImpl<>(Collections.emptyList());
 
-        List<TaskResponse> result = taskService.getAllTasks();
+        when(taskRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(emptyPage);
+
+        TaskFilterRequest filter = new TaskFilterRequest(
+                null, null, null, null, null
+        );
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<TaskResponse> result = taskService.getAllTasks(filter, pageable);
 
         assertTrue(result.isEmpty());
     }

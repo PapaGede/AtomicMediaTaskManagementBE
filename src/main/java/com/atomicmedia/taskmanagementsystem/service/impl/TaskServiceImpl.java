@@ -1,12 +1,17 @@
 package com.atomicmedia.taskmanagementsystem.service.impl;
 
+import com.atomicmedia.taskmanagementsystem.dto.TaskFilterRequest;
 import com.atomicmedia.taskmanagementsystem.dto.TaskRequest;
 import com.atomicmedia.taskmanagementsystem.dto.TaskResponse;
 import com.atomicmedia.taskmanagementsystem.exception.TaskNotFoundException;
 import com.atomicmedia.taskmanagementsystem.model.Task;
 import com.atomicmedia.taskmanagementsystem.repository.TaskRepository;
 import com.atomicmedia.taskmanagementsystem.service.TaskService;
+import com.atomicmedia.taskmanagementsystem.specification.TaskSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,11 +40,15 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TaskResponse> getAllTasks() {
-        return taskRepository.findAll()
-                .stream()
-                .map(TaskResponse::from)
-                .toList();
+    public Page<TaskResponse> getAllTasks(TaskFilterRequest filter, Pageable pageable) {
+        Specification<Task> spec = Specification.allOf(
+                TaskSpecification.hasCompletionStatus(filter.completed()),
+                TaskSpecification.dueDateAfter(filter.dueDateFrom()),
+                TaskSpecification.dueDateBefore(filter.dueDateTo()),
+                TaskSpecification.titleContains(filter.search()),
+                TaskSpecification.hasAssignee(filter.assignedTo()));
+
+        return taskRepository.findAll(spec, pageable).map(TaskResponse::from);
     }
 
     @Override
