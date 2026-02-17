@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -80,5 +79,11 @@ public class TaskController {
     public ResponseEntity<Void> deleteTask(@PathVariable UUID id) {
         taskService.deleteTask(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/toggle")
+    @Operation(summary = "Toggle task completion status")
+    public ResponseEntity<TaskResponse> toggleTaskCompletion(@PathVariable UUID id) {
+        return ResponseEntity.ok(taskService.toggleTaskCompletion(id));
     }
 }

@@ -1,6 +1,13 @@
 package com.atomicmedia.taskmanagementsystem.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -22,7 +29,7 @@ public class Task {
     @Column(nullable = false, length = 100)
     private String title;
 
-    @Column(nullable = true)
+    @Column()
     private String description;
 
     @Column(nullable = false)

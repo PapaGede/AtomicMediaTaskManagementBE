@@ -6,7 +6,6 @@ import com.atomicmedia.taskmanagementsystem.dto.TaskResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface TaskService {
@@ -15,4 +14,5 @@ public interface TaskService {
     TaskResponse getTaskById(UUID id);
     TaskResponse updateTask(UUID id, TaskRequest request);
     void deleteTask(UUID id);
+    TaskResponse toggleTaskCompletion(UUID id);
 }

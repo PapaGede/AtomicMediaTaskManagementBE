@@ -15,7 +15,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -78,6 +77,14 @@ public class TaskServiceImpl implements TaskService {
     public void deleteTask(UUID id) {
         Task task = findTaskOrThrow(id);
         taskRepository.delete(task);
+    }
+
+    @Override
+    public TaskResponse toggleTaskCompletion(UUID id) {
+        Task task = findTaskOrThrow(id);
+        task.setCompleted(!task.isCompleted());
+        Task updated = taskRepository.save(task);
+        return TaskResponse.from(updated);
     }
 
     private Task findTaskOrThrow(UUID id) {
