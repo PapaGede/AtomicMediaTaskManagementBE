@@ -131,4 +131,17 @@ class TaskServiceImplTest {
         TaskResponse response = taskService.updateTask(id, request);
         assertEquals("Updated Title", response.title());
     }
+
+    @Test
+    void testShouldDeleteTaskSuccessfully() {
+        UUID id = UUID.randomUUID();
+        Task task = new Task();
+        task.setId(id);
+
+        when(taskRepository.findById(id)).thenReturn(Optional.of(task));
+
+        taskService.deleteTask(id);
+
+        verify(taskRepository).delete(task);
+    }
 }

@@ -15,11 +15,11 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
 
     @Override
-    @Transactional
     public TaskResponse createTask(TaskRequest request) {
         Task task = Task.builder()
                 .title(request.title())
@@ -34,7 +34,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<TaskResponse> getAllTasks() {
         return taskRepository.findAll()
                 .stream()
@@ -43,7 +43,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public TaskResponse getTaskById(UUID id) {
         Task task = findTaskOrThrow(id);
         return TaskResponse.from(task);
@@ -63,6 +63,12 @@ public class TaskServiceImpl implements TaskService {
 
         Task updatedTask = taskRepository.save(task);
         return TaskResponse.from(updatedTask);
+    }
+
+    @Override
+    public void deleteTask(UUID id) {
+        Task task = findTaskOrThrow(id);
+        taskRepository.delete(task);
     }
 
     private Task findTaskOrThrow(UUID id) {
